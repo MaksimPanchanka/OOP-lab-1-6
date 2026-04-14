@@ -1,0 +1,13 @@
+# Скомпилированные файлы
+*.class
+
+# Папки сборки
+bin/
+target/
+build/
+
+# Настройки VS Code
+.vscode/
+.settings/
+.classpath
+.project
