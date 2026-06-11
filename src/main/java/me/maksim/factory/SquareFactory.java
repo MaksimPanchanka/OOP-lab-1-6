@@ -1,5 +1,8 @@
 package me.maksim.factory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 import me.maksim.models.base.Shape;
 import me.maksim.models.impl.Square;
 
@@ -17,7 +20,16 @@ public class SquareFactory implements ShapeFactory {
 
         return new Square(minX, minY, side);
     }
+    @Override
+    public Shape readBinary(ObjectInputStream in) throws IOException {
+        // Read the properties in the exact same order they were written in Square.writeBinary
+        double x = in.readDouble();
+        double y = in.readDouble();
+        double side = in.readDouble();
 
+        // Reconstruct and return the fully initialized Square object
+        return new Square(x, y, side);
+    }
     @Override
     public String getShapeName() {
         return "Квадрат";

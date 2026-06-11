@@ -1,5 +1,8 @@
 package me.maksim.factory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 import me.maksim.models.base.Shape;
 import me.maksim.models.impl.Ellipse;
 
@@ -16,6 +19,17 @@ public class EllipseFactory implements ShapeFactory{
         double radiusY = Math.abs(y2 - y1) / 2.0;
         
         return new Ellipse(centerX, centerY, radiusX, radiusY);
+    }
+    @Override
+    public Shape readBinary(ObjectInputStream in) throws IOException {
+        // Read center/starting points and both horizontal/vertical radii
+        double x = in.readDouble();
+        double y = in.readDouble();
+        double radius1 = in.readDouble();
+        double radius2 = in.readDouble();
+        
+        // Reconstruct and return the Ellipse object
+        return new Ellipse(x, y, radius1, radius2);
     }
 
     @Override

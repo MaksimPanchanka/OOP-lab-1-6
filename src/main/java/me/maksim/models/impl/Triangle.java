@@ -1,5 +1,8 @@
 package me.maksim.models.impl;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -20,5 +23,21 @@ public class Triangle extends Shape{
         this.y2 = y2;
         this.x3 = x3;
         this.y3 = y3;
+    }
+
+    @Override
+    public void writeBinary(ObjectOutputStream out) throws IOException {
+        // 1. Write the unique identifier
+        out.writeUTF("Треугольник");
+        
+        // 2. Write the first vertex (from Shape)
+        out.writeDouble(getX());
+        out.writeDouble(getY());
+        
+        // 3. Write the second and third vertices
+        out.writeDouble(this.x2);
+        out.writeDouble(this.y2);
+        out.writeDouble(this.x3);
+        out.writeDouble(this.y3);
     }
 }
