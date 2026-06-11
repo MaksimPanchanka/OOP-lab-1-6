@@ -40,7 +40,14 @@ public class EditorFrame extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(900, 600); // Expanded width slightly to fit new control layout smoothly
         this.setLayout(new BorderLayout());
+        JMenuBar menuBar = getJMenuBar(); // Получаем текущий бар окна
+        if (menuBar == null) {
+            menuBar = new JMenuBar();
+            setJMenuBar(menuBar);
+        }
 
+        // Вызываем создание меню конфигурации плагинов фильтрации
+        createPluginsMenu(menuBar);
         // Set default selected shape if any factories are registered
         if (!ShapeFactoryRegistry.getAvailableShapeNames().isEmpty()) {
             currentSelectedShape = ShapeFactoryRegistry.getAvailableShapeNames().get(0);
@@ -184,5 +191,28 @@ public class EditorFrame extends JFrame {
                 ex.printStackTrace();
             }
         }
+    }
+
+    /**
+ * Generates the dynamic settings menu for file processing filters.
+ * Populates checkboxes based on loaded SPI modules from the registry.
+ */
+    private void createPluginsMenu(JMenuBar menuBar) {
+        JMenu pluginsMenu = new JMenu("Plugins Configuration");
+
+        // Подтягиваем плагины, которые нашелся наш загрузчик
+        for (me.maksim.plugin.api.FileProcessorPlugin plugin : me.maksim.plugin.api.FileProcessorRegistry.getAvailablePlugins()) {
+            JCheckBoxMenuItem pluginCheck = new JCheckBoxMenuItem(plugin.getPluginName());
+            
+            pluginCheck.addActionListener(e -> {
+                boolean isSelected = pluginCheck.isSelected();
+                me.maksim.plugin.api.FileProcessorRegistry.setPluginActive(plugin, isSelected);
+                System.out.println("Plugin '" + plugin.getPluginName() + "' active state: " + isSelected);
+            });
+            
+            pluginsMenu.add(pluginCheck);
+        }
+
+        menuBar.add(pluginsMenu);
     }
 }

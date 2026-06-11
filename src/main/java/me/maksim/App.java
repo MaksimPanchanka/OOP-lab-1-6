@@ -1,5 +1,6 @@
 package me.maksim;
 
+import javax.swing.JMenuBar;
 import javax.swing.SwingUtilities;
 
 import me.maksim.ui.EditorFrame;
@@ -17,7 +18,7 @@ public class App {
     public static void main(String[] args) {
        // 1. Register base built-in shape factories
         registerFactories();
-
+        
         // 2. Scan and load external dynamic plugin modules from /plugins folder
         PluginLoaderService.loadPlugins();
 
@@ -26,6 +27,7 @@ public class App {
             EditorFrame frame = new EditorFrame();
             frame.setVisible(true);
         });
+
     }
 
     /**

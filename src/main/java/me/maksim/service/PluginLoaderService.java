@@ -1,7 +1,6 @@
 package me.maksim.service;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -10,18 +9,20 @@ import java.util.ServiceLoader;
 
 import me.maksim.factory.ShapeFactory;
 import me.maksim.factory.ShapeFactoryRegistry;
+import me.maksim.plugin.api.FileProcessorPlugin;
+import me.maksim.plugin.api.FileProcessorRegistry;
 
 /**
  * Service responsible for dynamically scanning a directory and loading external 
- * shape plug-ins into the application runtime using URLClassLoader.
+ * shape plug-ins and file processors into the application runtime using URLClassLoader.
  */
 public class PluginLoaderService {
 
     private static final String PLUGINS_DIR = "plugins";
 
     /**
-     * Scans the plugins folder, loads jar files, discovers ShapeFactory 
-     * implementations, and registers them dynamically.
+     * Scans the plugins folder, loads jar files, discovers implementations
+     * for both ShapeFactory and FileProcessorPlugin, and registers them dynamically.
      */
     public static void loadPlugins() {
         File dir = new File(PLUGINS_DIR);
@@ -54,13 +55,22 @@ public class PluginLoaderService {
                 PluginLoaderService.class.getClassLoader()
             );
 
-            // ServiceLoader searches for implementations specified in META-INF/services
-            ServiceLoader<ShapeFactory> serviceLoader = ServiceLoader.load(ShapeFactory.class, classLoader);
-
-            for (ShapeFactory factory : serviceLoader) {
-                // Dynamically register into our existing Lab 2/3 registry!
+            // ==========================================
+            // load factory
+            // ==========================================
+            ServiceLoader<ShapeFactory> shapeLoader = ServiceLoader.load(ShapeFactory.class, classLoader);
+            for (ShapeFactory factory : shapeLoader) {
                 ShapeFactoryRegistry.registerFactory(factory);
                 System.out.println("Plugin module successfully activated: " + factory.getShapeName());
+            }
+
+            // ==========================================
+            // load plugins
+            // ==========================================
+            ServiceLoader<FileProcessorPlugin> fileProcessorLoader = ServiceLoader.load(FileProcessorPlugin.class, classLoader);
+            for (FileProcessorPlugin plugin : fileProcessorLoader) {
+                FileProcessorRegistry.registerPlugin(plugin);
+                System.out.println("File processor filter successfully activated: " + plugin.getPluginName());
             }
 
         } catch (Exception e) {

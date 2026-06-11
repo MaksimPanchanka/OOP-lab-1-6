@@ -1,32 +1,39 @@
 package me.maksim.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.maksim.factory.ShapeFactory;
 import me.maksim.factory.ShapeFactoryRegistry;
 import me.maksim.models.base.Shape;
+import me.maksim.plugin.api.FileProcessorPlugin;
+import me.maksim.plugin.api.FileProcessorRegistry;
 
 public class BinarySerializationService {
+    
     /**
-     * Saves a list of shapes into a binary file.
+     * Saves a list of shapes into a binary file, proxying data through activated stream filters.
      *
      * @param file   The target file to save data into.
      * @param shapes The list of shapes to serialize.
      * @throws IOException If any writing operation fails.
      */
     public static void saveShapes(File file, List<Shape> shapes) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-            // 1. Write total number of shapes to know how many loops to execute during reading
+        OutputStream out = new FileOutputStream(file);
+
+
+        for (FileProcessorPlugin plugin : FileProcessorRegistry.getAvailablePlugins()) {
+            if (FileProcessorRegistry.isPluginActive(plugin)) {
+                out = plugin.wrapOutputStream(out);
+                System.out.println("Data stream proxied through filter: " + plugin.getPluginName());
+            }
+        }
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(out)) {
+            // Твоя оригинальная логика записи
             oos.writeInt(shapes.size());
 
-            // 2. Delegate the binary write operational logic to each individual shape instance
             for (Shape shape : shapes) {
                 shape.writeBinary(oos);
             }
@@ -34,7 +41,7 @@ public class BinarySerializationService {
     }
 
     /**
-     * Loads and reconstructs a list of shapes from a binary file.
+     * Loads and reconstructs a list of shapes from a binary file using reverse stream decoding.
      *
      * @param file The source binary file.
      * @return A list of fully initialized Shape objects.
@@ -44,20 +51,25 @@ public class BinarySerializationService {
     public static List<Shape> loadShapes(File file) throws IOException, ClassNotFoundException {
         List<Shape> loadedShapes = new ArrayList<>();
 
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            // 1. Read the initial total count of objects packed in the file
+        InputStream in = new FileInputStream(file);
+
+        List<FileProcessorPlugin> plugins = FileProcessorRegistry.getAvailablePlugins();
+        for (int i = plugins.size() - 1; i >= 0; i--) {
+            FileProcessorPlugin plugin = plugins.get(i);
+            if (FileProcessorRegistry.isPluginActive(plugin)) {
+                in = plugin.wrapInputStream(in);
+                System.out.println("Data stream decoded through filter: " + plugin.getPluginName());
+            }
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(in)) {
             int count = ois.readInt();
 
-            // 2. Loop through and rebuild each shape sequentially
             for (int i = 0; i < count; i++) {
-                // Read the unique text identifier first (e.g., "Квадрат", "Линия")
                 String shapeType = ois.readUTF();
-
-                // Dynamic lookup: fetch the appropriate factory from the registry without if-else
                 ShapeFactory factory = ShapeFactoryRegistry.getFactory(shapeType);
 
                 if (factory != null) {
-                    // Let the concrete factory parse the remaining double values and return the object
                     Shape shape = factory.readBinary(ois);
                     loadedShapes.add(shape);
                 } else {

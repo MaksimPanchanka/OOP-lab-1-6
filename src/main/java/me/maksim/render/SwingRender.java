@@ -13,11 +13,10 @@ import java.util.function.BiConsumer;
 public class SwingRender extends JPanel {
     private final List<Shape> shapes;
 
-    // Реестр для отрисовщиков плагинов: Ключ - класс фигуры, Значение - логика отрисовки
     private static final Map<Class<? extends Shape>, BiConsumer<Graphics2D, Shape>> customRenderers = new HashMap<>();
 
     /**
-     * Метод, с помощью которого плагин сможет зарегистрировать свою отрисовку
+     * Registration and rendering
      */
     public static <T extends Shape> void registerCustomRenderer(Class<T> shapeClass, BiConsumer<Graphics2D, T> renderer) {
         customRenderers.put(shapeClass, (g2d, shape) -> renderer.accept(g2d, shapeClass.cast(shape)));
@@ -41,13 +40,11 @@ public class SwingRender extends JPanel {
     }
 
     private void drawShape(Graphics2D g2d, Shape shape) {
-        // 1. Проверяем, нет ли этой фигуры в динамическом реестре плагинов
         if (customRenderers.containsKey(shape.getClass())) {
             customRenderers.get(shape.getClass()).accept(g2d, shape);
             return;
         }
 
-        // 2. Твой старый неизмененный код для базовых фигур
         if (shape instanceof Line l) {
             g2d.drawLine((int)l.getX(), (int)l.getY(), (int)l.getX2(), (int)l.getY2());
         } else if (shape instanceof me.maksim.models.impl.Rectangle r) {
