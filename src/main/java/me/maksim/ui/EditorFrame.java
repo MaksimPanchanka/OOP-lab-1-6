@@ -53,13 +53,16 @@ public class EditorFrame extends JFrame {
 
     /**
      * Builds the toolbar split into shape selection and file control modules.
+     * Uses BoxLayout to prevent layout overlapping when plugins add new elements.
      */
     private void initToolbar() {
-        JPanel mainToolbar = new JPanel(new BorderLayout());
+        // Создаем панель с горизонтальным BoxLayout
+        JPanel mainToolbar = new JPanel();
+        mainToolbar.setLayout(new BoxLayout(mainToolbar, BoxLayout.X_AXIS));
         mainToolbar.setBackground(Color.LIGHT_GRAY);
 
         // Left section: Dynamic buttons generated from the Factory Registry
-        JPanel shapeSelectionPanel = new JPanel();
+        JPanel shapeSelectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         shapeSelectionPanel.setOpaque(false);
         for (String shapeName : ShapeFactoryRegistry.getAvailableShapeNames()) {
             JButton button = new JButton(shapeName);
@@ -71,7 +74,7 @@ public class EditorFrame extends JFrame {
         }
 
         // Right section: Static operational utilities (Save, Load, Clear operations)
-        JPanel ioControlPanel = new JPanel();
+        JPanel ioControlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         ioControlPanel.setOpaque(false);
 
         JButton saveButton = new JButton("Save Binary");
@@ -91,9 +94,9 @@ public class EditorFrame extends JFrame {
         ioControlPanel.add(loadButton);
         ioControlPanel.add(clearButton);
 
-        // Construct total layout frame architecture
-        mainToolbar.add(shapeSelectionPanel, BorderLayout.WEST);
-        mainToolbar.add(ioControlPanel, BorderLayout.EAST);
+        mainToolbar.add(shapeSelectionPanel);
+        mainToolbar.add(Box.createHorizontalGlue());
+        mainToolbar.add(ioControlPanel);
         
         this.add(mainToolbar, BorderLayout.NORTH);
     }
